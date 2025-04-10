@@ -30,6 +30,9 @@ jobs:
         cd todo
         npm run build
 
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions@v4
+      with:
         args: test
 
 
