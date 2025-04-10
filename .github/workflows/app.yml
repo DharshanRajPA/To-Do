@@ -1,36 +1,70 @@
-name: CI/CD for react Todo 
+name: CI/CD Pipeline with Security Scan
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  # Build Job
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
+    outputs:
+      buildDir: ${{ steps.upload.outputs.artifact_path }}
     steps:
+      # 1. Checkout code from the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install Node
+      # 2. Setup Node.js (adapt for your language/runtime as needed)
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-
+          node-version: '16'
+          
+      # 3. Install project dependencies
       - name: Install Dependencies
-        run: |
-          cd todo
-          npm install
+        run: npm install
 
+      # 4. Run tests (unit tests, integration tests, linting, etc.)
+      - name: Run Tests
+        run: npm test
+
+      # 5. Build the application
       - name: Build Project
-        run: |
-          cd todo
-          npm run build
+        run: npm run build
 
-      - name: Upload artifact to enable deployment
+      # 6. Upload build artifacts for later stages (optional)
+      - name: Upload Build Artifact
+        id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: production file
-          path: ./todo/build
+          name: build-artifact
+          path: ./build
 
+  security-scan:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      # 7. Checkout code again for the security scan context
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 8. Setup Node.js for running Snyk
+      - name: Setup Node.js for Security Scan
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # 9. Install dependencies required for Snyk to scan
+      - name: Install Dependencies for Scan
+        run: npm install
+
+      # 10. Run Snyk vulnerability scan on project dependencies
+      - name: Run Snyk Vulnerability Scan
+        uses: snyk/actions@v1
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          # Use "test" to run an immediate scan; "monitor" can be used for historical tracking.
+          command: test
