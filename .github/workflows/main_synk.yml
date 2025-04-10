@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline with Security Scan
 
 on:
   push:
@@ -10,61 +10,65 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the repository at the root level
-      - name: Check out code
+      # 1. Checkout the repository code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: (Optional) List files in root for debugging
-      - name: List repository files
+      # 2. Debug: List files in the repository root
+      - name: List Root Files
         run: ls -la
 
-      # Step 3: Set up Node.js (version can be changed as needed)
-      - name: Set up Node
+      # 3. Set up Node.js environment (Node.js v16)
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: '16'
 
-      # Step 4: Install dependencies in the root
-      # If your package.json 'scripts' automatically cd into 'todo',
-      # you just need a standard npm install. 
-      - name: Install dependencies
+      # 4. Install dependencies in the "todo" directory
+      - name: Install Dependencies
         run: npm install
+        working-directory: ./todo
 
-      # Step 5: Run tests (the test script in package.json can cd into 'todo' as needed)
-      - name: Run tests
+      # 5. Run tests (unit tests, linting, etc.) in the "todo" directory
+      - name: Run Tests
         run: npm test
+        working-directory: ./todo
 
-      # Step 6: Build the app (the build script in package.json likely cd's into 'todo')
-      - name: Build the app
+      # 6. Build the application (assumes build output goes to "todo/build")
+      - name: Build Project
         run: npm run build
+        working-directory: ./todo
 
-      # Step 7: Upload build artifacts, if the 'build' script outputs into, say, 'todo/build'
-      # or some other folder
-      - name: Upload build artifacts
+      # 7. Upload the build artifact (from "todo/build")
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: ./todo/build  # adjust if your final build is in 'todo/build'
+          path: ./todo/build
 
   security-scan:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      # 8. Checkout the repository code again
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Node for Snyk
+      # 9. Set up Node.js for the security scan (Node.js v16)
+      - name: Setup Node.js for Security Scan
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: '16'
 
-      - name: Install dependencies for scan
+      # 10. Install dependencies in "todo" for Snyk to run
+      - name: Install Dependencies for Scan
         run: npm install
+        working-directory: ./todo
 
-      - name: Run Snyk vulnerability scan
+      # 11. Run a Snyk vulnerability scan on your project dependencies
+      - name: Run Snyk Vulnerability Scan
         uses: snyk/actions@v1
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-
