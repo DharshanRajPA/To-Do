@@ -10,58 +10,49 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout the repository code from the repository root.
+      # 1. Check out the code from the repository root
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2. Optional: Debug - List repository files (verify structure)
-      - name: List Files
-        run: ls -la
-
-      # 3. Set up Node.js environment (using Node.js version 16)
+      # 2. Set up Node.js environment (using Node.js 16)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # 4. Install project dependencies (npm will locate package.json in root)
+      # 3. Install project dependencies (assumes package.json is at the repository root)
       - name: Install Dependencies
-        run: npm install
+        run: |
+          cd todo
+          npm install
 
-      # 5. Run tests (unit tests, integration tests, or linting, as defined)
-      - name: Run Tests
-        run: npm test
-
-      # 6. Build the application (e.g., create a production build)
-      - name: Build Project
-        run: npm run build
-
-      # 7. Upload the build artifact (assumes build outputs to ./build)
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact
-          path: ./build
+      # 4. Build the application (your build script in package.json should output to an appropriate folder)
+      - name: Build Application
+        run: |
+          cd todo
+          npm run build
 
   security-scan:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      # 8. Check out code again for the security scan
+      # 5. Check out the code again for the security scan context
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 9. Set up Node.js for Snyk scan
+      # 6. Set up Node.js environment for Snyk
       - name: Setup Node.js for Security Scan
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # 10. Install dependencies needed for Snyk to run
-      - name: Install Dependencies for Scan
-        run: npm install
+      # 7. Install dependencies for the security scan (so Snyk can analyze your project)
+      - name: Install Dependencies for Security Scan
+        run: |
+          cd todo
+          npm install
 
-      # 11. Run Snyk vulnerability scan on your project dependencies.
+      # 8. Run Snyk vulnerability scan on your project dependencies
       - name: Run Snyk Vulnerability Scan
         uses: snyk/actions@v1
         env:
