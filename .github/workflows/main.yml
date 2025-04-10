@@ -1,39 +1,70 @@
-name: Snyk Security Scan
+name: CI/CD Pipeline with Security Scan
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  security-scan:
-    name: Run Snyk Security Scan
+  build-and-test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1. Checkout the repository code from the repository root.
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      # 2. Optional: Debug - List repository files (verify structure)
+      - name: List Files
+        run: ls -la
 
-    - name: Install dependencies
-      run: |
-        cd todo
-        npm install
+      # 3. Set up Node.js environment (using Node.js version 16)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
 
-    - name: Build project
-      run: |
-        cd todo
-        npm run build
+      # 4. Install project dependencies (npm will locate package.json in root)
+      - name: Install Dependencies
+        run: npm install
 
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions@v4
-      with:
-        args: test
+      # 5. Run tests (unit tests, integration tests, or linting, as defined)
+      - name: Run Tests
+        run: npm test
 
+      # 6. Build the application (e.g., create a production build)
+      - name: Build Project
+        run: npm run build
 
+      # 7. Upload the build artifact (assumes build outputs to ./build)
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: ./build
 
+  security-scan:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      # 8. Check out code again for the security scan
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 9. Set up Node.js for Snyk scan
+      - name: Setup Node.js for Security Scan
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # 10. Install dependencies needed for Snyk to run
+      - name: Install Dependencies for Scan
+        run: npm install
+
+      # 11. Run Snyk vulnerability scan on your project dependencies.
+      - name: Run Snyk Vulnerability Scan
+        uses: snyk/actions@v1
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
