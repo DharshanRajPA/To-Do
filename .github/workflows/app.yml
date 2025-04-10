@@ -36,7 +36,7 @@ jobs:
 
       # Snyk Security Scan
       - name: Run Snyk to check vulnerabilities
-        uses: snyk/actions@v3
+        uses: snyk/actions@v4
         with:
           args: monitor
         env:
