@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with Security Scan
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,57 +10,61 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      # Step 1: Check out the repository at the root level
+      - name: Check out code
         uses: actions/checkout@v3
 
-      # Optional: List files to verify structure
-      - name: List Project Files
+      # Step 2: (Optional) List files in root for debugging
+      - name: List repository files
         run: ls -la
-        working-directory: ./To-Do
 
-      - name: Setup Node.js
+      # Step 3: Set up Node.js (version can be changed as needed)
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: "16"
 
-      - name: Install Dependencies
+      # Step 4: Install dependencies in the root
+      # If your package.json 'scripts' automatically cd into 'todo',
+      # you just need a standard npm install. 
+      - name: Install dependencies
         run: npm install
-        working-directory: ./To-Do
 
-      - name: Run Tests
+      # Step 5: Run tests (the test script in package.json can cd into 'todo' as needed)
+      - name: Run tests
         run: npm test
-        working-directory: ./To-Do
 
-      - name: Build Project
+      # Step 6: Build the app (the build script in package.json likely cd's into 'todo')
+      - name: Build the app
         run: npm run build
-        working-directory: ./To-Do
 
-      - name: Upload Build Artifact
-        id: upload
+      # Step 7: Upload build artifacts, if the 'build' script outputs into, say, 'todo/build'
+      # or some other folder
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: ./To-Do/build
+          path: ./todo/build  # adjust if your final build is in 'todo/build'
 
   security-scan:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js for Security Scan
+      - name: Set up Node for Snyk
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: "16"
 
-      - name: Install Dependencies for Scan
+      - name: Install dependencies for scan
         run: npm install
-        working-directory: ./To-Do
 
-      - name: Run Snyk Vulnerability Scan
+      - name: Run Snyk vulnerability scan
         uses: snyk/actions@v1
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
+
