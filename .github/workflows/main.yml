@@ -26,15 +26,21 @@ jobs:
 
       # 4. Install project dependencies (npm will locate package.json in root)
       - name: Install Dependencies
-        run: npm install
+        run: |
+          cd todo
+          npm install
 
       # 5. Run tests (unit tests, integration tests, or linting, as defined)
       - name: Run Tests
-        run: npm test
+        run: |
+          cd todo
+          npm test
 
       # 6. Build the application (e.g., create a production build)
       - name: Build Project
-        run: npm run build
+        run: |
+          cd todo
+          npm run build
 
       # 7. Upload the build artifact (assumes build outputs to ./build)
       - name: Upload Build Artifact
@@ -59,7 +65,9 @@ jobs:
 
       # 10. Install dependencies needed for Snyk to run
       - name: Install Dependencies for Scan
-        run: npm install
+        run: |
+          cd todo
+          npm install
 
       # 11. Run Snyk vulnerability scan on your project dependencies.
       - name: Run Snyk Vulnerability Scan
