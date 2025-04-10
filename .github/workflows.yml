@@ -9,62 +9,58 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    outputs:
-      buildDir: ${{ steps.upload.outputs.artifact_path }}
     steps:
-      # 1. Checkout code from the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2. Setup Node.js (adapt for your language/runtime as needed)
+      # Optional: List files to verify structure
+      - name: List Project Files
+        run: ls -la
+        working-directory: ./To-Do
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          
-      # 3. Install project dependencies
+
       - name: Install Dependencies
         run: npm install
+        working-directory: ./To-Do
 
-      # 4. Run tests (unit tests, integration tests, linting, etc.)
       - name: Run Tests
         run: npm test
+        working-directory: ./To-Do
 
-      # 5. Build the application
       - name: Build Project
         run: npm run build
+        working-directory: ./To-Do
 
-      # 6. Upload build artifacts for later stages (optional)
       - name: Upload Build Artifact
         id: upload
         uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: ./build
+          path: ./To-Do/build
 
   security-scan:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      # 7. Checkout code again for the security scan context
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 8. Setup Node.js for running Snyk
       - name: Setup Node.js for Security Scan
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # 9. Install dependencies required for Snyk to scan
       - name: Install Dependencies for Scan
         run: npm install
+        working-directory: ./To-Do
 
-      # 10. Run Snyk vulnerability scan on project dependencies
       - name: Run Snyk Vulnerability Scan
         uses: snyk/actions@v1
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          # Use "test" to run an immediate scan; "monitor" can be used for historical tracking.
           command: test
