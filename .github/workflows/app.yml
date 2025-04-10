@@ -31,6 +31,13 @@ jobs:
       - name: Upload artifact to enable deployment
         uses: actions/upload-artifact@v4
         with:
-          name: poduction file
+          name: production file
           path: ./todo/build
 
+      # Snyk Security Scan
+      - name: Run Snyk to check vulnerabilities
+        uses: snyk/actions@v3
+        with:
+          args: monitor
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
