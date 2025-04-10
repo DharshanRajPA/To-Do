@@ -34,21 +34,3 @@ jobs:
           name: poduction file
           path: ./todo/build
 
-  # Deploy Job
-  deploy:
-   
-    needs: build
-    
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: poduction file
-          path: ./todo/build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.KEY }} #this is the key of the access token
-          publish_dir: ./todo/build
